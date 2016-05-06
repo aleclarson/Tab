@@ -1,0 +1,13 @@
+{
+  "name": "Tab",
+  "version": "1.0.0",
+  "main": "js/src/Tab",
+  "dependencies": {
+
+  },
+  "lotus": {
+    "plugins": [
+      "lotus-coffee"
+    ]
+  }
+}
