@@ -1,18 +1,16 @@
 
-{ assert, assertType } = require "type-utils"
-{ Component, View } = require "component"
+{ Component, View, Children } = require "component"
 
+assertType = require "assertType"
+assert = require "assert"
 Scene = require "Scene"
 sync = require "sync"
 
 Tab = require "./Tab"
 
-type = Component.Model "TabBar"
+type = Component.Type "TabBar"
 
 type.inherits Scene
-
-type.argumentTypes =
-  tabs: Array
 
 type.defineValues
 
@@ -26,28 +24,54 @@ type.defineProperties
     get: -> @_activeTab
     set: (newValue, oldValue) ->
       return if newValue is oldValue
-
       assertType newValue, Tab.Kind
-      assert (this is newValue.bar), "Tab does not belong to this TabBar!"
+      assert this is newValue.bar, "Tab does not belong to this TabBar!"
+      @_unselectTab oldValue, newValue if oldValue
+      @_selectTab newValue, oldValue
 
-      if oldTab?
-        return if activeTab is oldTab
-        oldTab.button.__onUnselect activeTab
-        for scene in oldTab.scenes
-          scene.isHidden = yes
+  tabs:
+    get: -> @_tabs
+    set: (tabs) ->
+      assert not @_tabs.length, "Tabs are already set!"
+      for tab in tabs
+        assertType tab, Tab.Kind
+        assert (tab.bar is null), "Tab already belongs to another TabBar!"
+        tab.bar = this
+        @_tabs.push tab
+      return
 
-      @_activeTab = activeTab
-      activeTab.button.__onSelect oldTab
-      for scene in activeTab.scenes
-        scene.isHidden = no
+type.defineListeners ->
+  sync.each @_tabs, (tab) =>
+    tab.button.didTap =>
+      tab.button.__onTap()
 
-type.initInstance (tabs) ->
-  for tab in tabs
-    assertType tab, Tab.Kind
-    assert (tab.bar is null), "Tab already belongs to another TabBar!"
-    tab.bar = this
-    @_tabs.push tab
-  return
+type.defineMethods
+
+  _selectTab: (tab, oldTab) ->
+    @_activeTab = tab
+    tryCall tab.button, "__onSelect", oldTab
+    for scene in tab.scenes
+      scene.isHidden = no
+    return
+
+  _unselectTab: (tab, newTab) ->
+    tryCall tab.button, "__onUnselect", newTab
+    for scene in tab.scenes
+      scene.isHidden = yes
+    return
+
+#   __onInsert: (collection) ->
+#     collection.insert tab for tab in @_tabs
+#
+#   __onRemove: (collection) ->
+#     collection.remove tab for tab in @_tabs
+
+#
+# Rendering
+#
+
+type.propTypes =
+  children: Children
 
 type.defineStyles
 
@@ -55,28 +79,34 @@ type.defineStyles
     flexDirection: "row"
     alignItems: "stretch"
 
-type.render -> @__renderBar()
+  # If defined, a border will be rendered.
+  border: null
+
+type.render (props) ->
+  return View
+    style: @styles.bar()
+    children: @__renderChildren()
 
 type.defineMethods
 
-  __renderBar: (props) ->
-    return View
-      style: @styles.bar
-      children: [
-        props.children
-        @__renderButtons()
-      ]
+  __renderChildren: -> [
+    @props.children
+    @__renderButtons()
+  ]
 
   __renderButtons: ->
     sync.map @_tabs, (tab) ->
       tab.button.render()
 
-# type.overrideMethods
-#
-#   __onInsert: (collection) ->
-#     collection.insert tab for tab in @_tabs
-#
-#   __onRemove: (collection) ->
-#     collection.remove tab for tab in @_tabs
+  __renderBorder: ->
+    return if not @styles.border
+    return View
+      style: @styles.border()
 
 module.exports = type.build()
+
+tryCall = (obj, key, arg) ->
+  func = obj[key]
+  if func and func.call
+    return func.call obj, arg
+  return

@@ -1,10 +1,11 @@
 
 { Component } = require "component"
-{ assert } = require "type-utils"
 
+assert = require "assert"
 Scene = require "Scene"
+Event = require "event"
 
-type = Component.Model "Tab"
+type = Component.Type "Tab"
 
 type.inherits Scene
 
@@ -12,7 +13,9 @@ type.defineProperties
 
   button: lazy: ->
     Button = @__loadButtonType()
-    Button { tab: this }
+    button = Button { tab: this }
+    assert button instanceof Tab.Button, "Tab::__loadButtonType must return a type that inherits from Tab.Button!"
+    return button
 
   activeScene: get: ->
     @_children.last
@@ -35,6 +38,11 @@ type.initInstance ->
 
   @_children.push this
 
+type.definePrototype
+
+  _buttonType: lazy: ->
+    @__loadButtonType()
+
 type.defineMethods
 
   push: (scene) ->
@@ -50,11 +58,14 @@ type.defineMethods
     return
 
   __loadButtonType: ->
-    throw Error "Subclass must override!"
+    Tab.Button
 
 type.defineStatics
 
   Bar: lazy: ->
     require "./TabBar"
 
-module.exports = type.build()
+  Button: lazy: ->
+    require "./TabButton"
+
+module.exports = Tab = type.build()

@@ -1,8 +1,10 @@
-var Component, Scene, Tab, View, assert, assertType, ref, ref1, sync, type;
+var Children, Component, Scene, Tab, View, assert, assertType, ref, sync, tryCall, type;
 
-ref = require("type-utils"), assert = ref.assert, assertType = ref.assertType;
+ref = require("component"), Component = ref.Component, View = ref.View, Children = ref.Children;
 
-ref1 = require("component"), Component = ref1.Component, View = ref1.View;
+assertType = require("assertType");
+
+assert = require("assert");
 
 Scene = require("Scene");
 
@@ -10,13 +12,9 @@ sync = require("sync");
 
 Tab = require("./Tab");
 
-type = Component.Model("TabBar");
+type = Component.Type("TabBar");
 
 type.inherits(Scene);
-
-type.argumentTypes = {
-  tabs: Array
-};
 
 type.defineValues({
   _activeTab: null,
@@ -31,72 +29,113 @@ type.defineProperties({
       return this._activeTab;
     },
     set: function(newValue, oldValue) {
-      var i, j, len, len1, ref2, ref3, results, scene;
       if (newValue === oldValue) {
         return;
       }
       assertType(newValue, Tab.Kind);
       assert(this === newValue.bar, "Tab does not belong to this TabBar!");
-      if (typeof oldTab !== "undefined" && oldTab !== null) {
-        if (activeTab === oldTab) {
-          return;
-        }
-        oldTab.button.__onUnselect(activeTab);
-        ref2 = oldTab.scenes;
-        for (i = 0, len = ref2.length; i < len; i++) {
-          scene = ref2[i];
-          scene.isHidden = true;
-        }
+      if (oldValue) {
+        this._unselectTab(oldValue, newValue);
       }
-      this._activeTab = activeTab;
-      activeTab.button.__onSelect(oldTab);
-      ref3 = activeTab.scenes;
-      results = [];
-      for (j = 0, len1 = ref3.length; j < len1; j++) {
-        scene = ref3[j];
-        results.push(scene.isHidden = false);
+      return this._selectTab(newValue, oldValue);
+    }
+  },
+  tabs: {
+    get: function() {
+      return this._tabs;
+    },
+    set: function(tabs) {
+      var i, len, tab;
+      assert(!this._tabs.length, "Tabs are already set!");
+      for (i = 0, len = tabs.length; i < len; i++) {
+        tab = tabs[i];
+        assertType(tab, Tab.Kind);
+        assert(tab.bar === null, "Tab already belongs to another TabBar!");
+        tab.bar = this;
+        this._tabs.push(tab);
       }
-      return results;
     }
   }
 });
 
-type.initInstance(function(tabs) {
-  var i, len, tab;
-  for (i = 0, len = tabs.length; i < len; i++) {
-    tab = tabs[i];
-    assertType(tab, Tab.Kind);
-    assert(tab.bar === null, "Tab already belongs to another TabBar!");
-    tab.bar = this;
-    this._tabs.push(tab);
+type.defineListeners(function() {
+  return sync.each(this._tabs, (function(_this) {
+    return function(tab) {
+      return tab.button.didTap(function() {
+        return tab.button.__onTap();
+      });
+    };
+  })(this));
+});
+
+type.defineMethods({
+  _selectTab: function(tab, oldTab) {
+    var i, len, ref1, scene;
+    this._activeTab = tab;
+    tryCall(tab.button, "__onSelect", oldTab);
+    ref1 = tab.scenes;
+    for (i = 0, len = ref1.length; i < len; i++) {
+      scene = ref1[i];
+      scene.isHidden = false;
+    }
+  },
+  _unselectTab: function(tab, newTab) {
+    var i, len, ref1, scene;
+    tryCall(tab.button, "__onUnselect", newTab);
+    ref1 = tab.scenes;
+    for (i = 0, len = ref1.length; i < len; i++) {
+      scene = ref1[i];
+      scene.isHidden = true;
+    }
   }
 });
+
+type.propTypes = {
+  children: Children
+};
 
 type.defineStyles({
   bar: {
     flexDirection: "row",
     alignItems: "stretch"
-  }
+  },
+  border: null
 });
 
-type.render(function() {
-  return this.__renderBar();
+type.render(function(props) {
+  return View({
+    style: this.styles.bar(),
+    children: this.__renderChildren()
+  });
 });
 
 type.defineMethods({
-  __renderBar: function(props) {
-    return View({
-      style: this.styles.bar,
-      children: [props.children, this.__renderButtons()]
-    });
+  __renderChildren: function() {
+    return [this.props.children, this.__renderButtons()];
   },
   __renderButtons: function() {
     return sync.map(this._tabs, function(tab) {
       return tab.button.render();
     });
+  },
+  __renderBorder: function() {
+    if (!this.styles.border) {
+      return;
+    }
+    return View({
+      style: this.styles.border()
+    });
   }
 });
 
 module.exports = type.build();
+
+tryCall = function(obj, key, arg) {
+  var func;
+  func = obj[key];
+  if (func && func.call) {
+    return func.call(obj, arg);
+  }
+};
 
 //# sourceMappingURL=../../map/src/TabBar.map
