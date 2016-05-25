@@ -60,6 +60,11 @@ type.defineMethods
   __loadButtonType: ->
     Tab.Button
 
+type.overrideMethods
+
+  __getChildren: ->
+    @_children
+
 type.defineStatics
 
   Bar: lazy: ->

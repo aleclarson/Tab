@@ -82,10 +82,12 @@ type.defineStyles
   # If defined, a border will be rendered.
   border: null
 
-type.render (props) ->
-  return View
-    style: @styles.bar()
-    children: @__renderChildren()
+type.overrideMethods
+
+  __renderContent: ->
+    return View
+      style: @styles.bar()
+      children: @__renderChildren()
 
 type.defineMethods
 

@@ -102,11 +102,13 @@ type.defineStyles({
   border: null
 });
 
-type.render(function(props) {
-  return View({
-    style: this.styles.bar(),
-    children: this.__renderChildren()
-  });
+type.overrideMethods({
+  __renderContent: function() {
+    return View({
+      style: this.styles.bar(),
+      children: this.__renderChildren()
+    });
+  }
 });
 
 type.defineMethods({
