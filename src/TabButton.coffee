@@ -26,4 +26,9 @@ type.defineMethods
 
   __onUnselect: emptyFunction
 
+type.defineListeners ->
+
+  @didTap =>
+    @__onTap()
+
 module.exports = type.build()

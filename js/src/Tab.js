@@ -67,13 +67,14 @@ type.definePrototype({
 
 type.defineMethods({
   push: function(scene) {
+    scene.isHidden = this.isHidden;
     this._children.push(scene);
     this._collection.insert(scene);
   },
   pop: function() {
     var scene;
     scene = this.activeScene;
-    if (scene == null) {
+    if (!scene) {
       return;
     }
     this._children.pop();
@@ -81,12 +82,6 @@ type.defineMethods({
   },
   __loadButtonType: function() {
     return Tab.Button;
-  }
-});
-
-type.overrideMethods({
-  __getChildren: function() {
-    return this._children;
   }
 });
 

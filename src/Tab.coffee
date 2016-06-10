@@ -46,24 +46,20 @@ type.definePrototype
 type.defineMethods
 
   push: (scene) ->
+    scene.isHidden = @isHidden
     @_children.push scene
     @_collection.insert scene
     return
 
   pop: ->
     scene = @activeScene
-    return unless scene?
+    return if not scene
     @_children.pop()
     @_collection.remove scene
     return
 
   __loadButtonType: ->
     Tab.Button
-
-type.overrideMethods
-
-  __getChildren: ->
-    @_children
 
 type.defineStatics
 

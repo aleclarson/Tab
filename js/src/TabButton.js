@@ -28,6 +28,14 @@ type.defineMethods({
   __onUnselect: emptyFunction
 });
 
+type.defineListeners(function() {
+  return this.didTap((function(_this) {
+    return function() {
+      return _this.__onTap();
+    };
+  })(this));
+});
+
 module.exports = type.build();
 
 //# sourceMappingURL=../../map/src/TabButton.map

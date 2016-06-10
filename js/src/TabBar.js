@@ -58,16 +58,6 @@ type.defineProperties({
   }
 });
 
-type.defineListeners(function() {
-  return sync.each(this._tabs, (function(_this) {
-    return function(tab) {
-      return tab.button.didTap(function() {
-        return tab.button.__onTap();
-      });
-    };
-  })(this));
-});
-
 type.defineMethods({
   _selectTab: function(tab, oldTab) {
     var i, len, ref1, scene;
@@ -90,14 +80,42 @@ type.defineMethods({
   }
 });
 
+type.overrideMethods({
+  __onInsert: function(collection) {
+    var i, len, ref1, results, tab;
+    assert(this._tabs.length, "Must add tabs before mounting!");
+    ref1 = this._tabs;
+    results = [];
+    for (i = 0, len = ref1.length; i < len; i++) {
+      tab = ref1[i];
+      results.push(collection.insert(tab));
+    }
+    return results;
+  },
+  __onRemove: function(collection) {
+    var i, len, ref1, results, tab;
+    ref1 = this._tabs;
+    results = [];
+    for (i = 0, len = ref1.length; i < len; i++) {
+      tab = ref1[i];
+      results.push(collection.remove(tab));
+    }
+    return results;
+  }
+});
+
 type.propTypes = {
   children: Children
 };
 
 type.defineStyles({
   bar: {
+    alignItems: "stretch",
     flexDirection: "row",
-    alignItems: "stretch"
+    backgroundColor: "#fff",
+    position: "absolute",
+    left: 0,
+    right: 0
   },
   border: null
 });
@@ -108,13 +126,13 @@ type.overrideMethods({
       style: this.styles.bar(),
       children: this.__renderChildren()
     });
+  },
+  __renderChildren: function() {
+    return [this.__renderBorder(), this.props.children, this.__renderButtons()];
   }
 });
 
 type.defineMethods({
-  __renderChildren: function() {
-    return [this.props.children, this.__renderButtons()];
-  },
   __renderButtons: function() {
     return sync.map(this._tabs, function(tab) {
       return tab.button.render();

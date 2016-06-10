@@ -40,11 +40,6 @@ type.defineProperties
         @_tabs.push tab
       return
 
-type.defineListeners ->
-  sync.each @_tabs, (tab) =>
-    tab.button.didTap =>
-      tab.button.__onTap()
-
 type.defineMethods
 
   _selectTab: (tab, oldTab) ->
@@ -60,11 +55,14 @@ type.defineMethods
       scene.isHidden = yes
     return
 
-#   __onInsert: (collection) ->
-#     collection.insert tab for tab in @_tabs
-#
-#   __onRemove: (collection) ->
-#     collection.remove tab for tab in @_tabs
+type.overrideMethods
+
+  __onInsert: (collection) ->
+    assert @_tabs.length, "Must add tabs before mounting!"
+    collection.insert tab for tab in @_tabs
+
+  __onRemove: (collection) ->
+    collection.remove tab for tab in @_tabs
 
 #
 # Rendering
@@ -76,8 +74,12 @@ type.propTypes =
 type.defineStyles
 
   bar:
-    flexDirection: "row"
     alignItems: "stretch"
+    flexDirection: "row"
+    backgroundColor: "#fff"
+    position: "absolute"
+    left: 0
+    right: 0
 
   # If defined, a border will be rendered.
   border: null
@@ -89,12 +91,13 @@ type.overrideMethods
       style: @styles.bar()
       children: @__renderChildren()
 
-type.defineMethods
-
   __renderChildren: -> [
+    @__renderBorder()
     @props.children
     @__renderButtons()
   ]
+
+type.defineMethods
 
   __renderButtons: ->
     sync.map @_tabs, (tab) ->
