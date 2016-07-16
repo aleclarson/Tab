@@ -3,7 +3,7 @@
 
 assert = require "assert"
 Scene = require "Scene"
-Event = require "event"
+Event = require "Event"
 
 type = Component.Type "Tab"
 
