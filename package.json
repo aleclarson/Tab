@@ -1,0 +1,20 @@
+{
+  "name": "Tab",
+  "version": "1.0.0",
+  "main": "js/Tab",
+  "dependencies": {
+    "Button": "aleclarson/Button#2.0.0",
+    "Event": "aleclarson/Event#2.0.0",
+    "Scene": "aleclarson/Scene#1.0.0",
+    "assert": "aleclarson/assert#1.0.0",
+    "assertType": "aleclarson/assertType#1.0.0",
+    "component": "aleclarson/component#2.0.0",
+    "fromArgs": "aleclarson/fromArgs#1.0.0",
+    "sync": "aleclarson/sync#1.0.0"
+  },
+  "lotus": {
+    "plugins": [
+      "lotus-coffee"
+    ]
+  }
+}
