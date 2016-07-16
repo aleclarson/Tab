@@ -1,8 +1,8 @@
-var Button, Component, Tab, getArgProp, type;
+var Button, Component, Tab, fromArgs, type;
 
 Component = require("component").Component;
 
-getArgProp = require("getArgProp");
+fromArgs = require("fromArgs");
 
 Button = require("Button");
 
@@ -17,7 +17,7 @@ type.optionTypes = {
 };
 
 type.defineValues({
-  tab: getArgProp("tab")
+  tab: fromArgs("tab")
 });
 
 type.defineMethods({
@@ -38,4 +38,4 @@ type.defineListeners(function() {
 
 module.exports = type.build();
 
-//# sourceMappingURL=../../map/src/TabButton.map
+//# sourceMappingURL=map/TabButton.map

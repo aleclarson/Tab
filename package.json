@@ -1,7 +1,7 @@
 {
   "name": "Tab",
   "version": "1.0.0",
-  "main": "js/src/Tab",
+  "main": "js/Tab",
   "dependencies": {
     "Button": "aleclarson/Button#2.0.0",
     "Event": "aleclarson/Event#2.0.0",

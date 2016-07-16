@@ -6,7 +6,7 @@ assert = require("assert");
 
 Scene = require("Scene");
 
-Event = require("event");
+Event = require("Event");
 
 type = Component.Type("Tab");
 
@@ -100,4 +100,4 @@ type.defineStatics({
 
 module.exports = Tab = type.build();
 
-//# sourceMappingURL=../../map/src/Tab.map
+//# sourceMappingURL=map/Tab.map

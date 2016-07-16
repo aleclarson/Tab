@@ -158,4 +158,4 @@ tryCall = function(obj, key, arg) {
   }
 };
 
-//# sourceMappingURL=../../map/src/TabBar.map
+//# sourceMappingURL=map/TabBar.map
