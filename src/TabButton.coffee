@@ -1,7 +1,7 @@
 
 { Component } = require "component"
 
-getArgProp = require "getArgProp"
+fromArgs = require "fromArgs"
 Button = require "Button"
 
 Tab = require "./Tab"
@@ -15,7 +15,7 @@ type.optionTypes =
 
 type.defineValues
 
-  tab: getArgProp "tab"
+  tab: fromArgs "tab"
 
 type.defineMethods
 

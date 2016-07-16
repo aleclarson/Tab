@@ -9,7 +9,7 @@
     "assertType": "aleclarson/assertType#1.0.0",
     "component": "aleclarson/component#2.0.0",
     "event": "aleclarson/event#2.0.0",
-    "getArgProp": "aleclarson/getArgProp#1.0.0",
+    "fromArgs": "aleclarson/fromArgs#1.0.0",
     "sync": "aleclarson/sync#1.0.0"
   },
   "lotus": {
