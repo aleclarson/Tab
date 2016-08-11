@@ -1,5 +1,6 @@
 
-{ Component, View, Children } = require "component"
+{Type, Children} = require "modx"
+{View} = require "modx/views"
 
 assertType = require "assertType"
 assert = require "assert"
@@ -8,7 +9,7 @@ sync = require "sync"
 
 Tab = require "./Tab"
 
-type = Component.Type "TabBar"
+type = Type "TabBar"
 
 type.inherits Scene
 
@@ -26,8 +27,9 @@ type.defineProperties
       return if newValue is oldValue
       assertType newValue, Tab.Kind
       assert this is newValue.bar, "Tab does not belong to this TabBar!"
-      @_unselectTab oldValue, newValue if oldValue
-      @_selectTab newValue, oldValue
+      @_activeTab = newValue
+      oldValue and oldValue._onUnselect newValue
+      newValue._onSelect oldValue
 
   tabs:
     get: -> @_tabs
@@ -40,29 +42,18 @@ type.defineProperties
         @_tabs.push tab
       return
 
-type.defineMethods
-
-  _selectTab: (tab, oldTab) ->
-    @_activeTab = tab
-    tryCall tab.button, "__onSelect", oldTab
-    for scene in tab.scenes
-      scene.isHidden = no
-    return
-
-  _unselectTab: (tab, newTab) ->
-    tryCall tab.button, "__onUnselect", newTab
-    for scene in tab.scenes
-      scene.isHidden = yes
-    return
-
 type.overrideMethods
 
   __onInsert: (collection) ->
     assert @_tabs.length, "Must add tabs before mounting!"
-    collection.insert tab for tab in @_tabs
+    for tab in @_tabs
+      collection.insert tab
+    return
 
   __onRemove: (collection) ->
-    collection.remove tab for tab in @_tabs
+    for tab in @_tabs
+      collection.remove tab
+    return
 
 #
 # Rendering
@@ -74,30 +65,25 @@ type.propTypes =
 type.defineStyles
 
   bar:
+    left: 0
+    right: 0
+    position: "absolute"
     alignItems: "stretch"
     flexDirection: "row"
     backgroundColor: "#fff"
-    position: "absolute"
-    left: 0
-    right: 0
-
-  # If defined, a border will be rendered.
-  border: null
 
 type.overrideMethods
 
-  __renderContent: ->
+  __renderChildren: ->
     return View
       style: @styles.bar()
-      children: @__renderChildren()
+      children: [
+        @__renderBorder()
+        @props.children
+        @__renderButtons()
+      ]
 
-  __renderChildren: -> [
-    @__renderBorder()
-    @props.children
-    @__renderButtons()
-  ]
-
-type.defineMethods
+type.defineHooks
 
   __renderButtons: ->
     sync.map @_tabs, (tab) ->

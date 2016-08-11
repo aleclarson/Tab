@@ -1,6 +1,8 @@
-var Component, Event, Scene, Tab, assert, type;
+var Event, Scene, Tab, Type, assert, emptyFunction, type;
 
-Component = require("component").Component;
+Type = require("modx").Type;
+
+emptyFunction = require("emptyFunction");
 
 assert = require("assert");
 
@@ -8,9 +10,25 @@ Scene = require("Scene");
 
 Event = require("Event");
 
-type = Component.Type("Tab");
+type = Type("Tab");
 
 type.inherits(Scene);
+
+type.defineOptions({
+  isHidden: Boolean.withDefault(true)
+});
+
+type.defineValues({
+  bar: null
+});
+
+type.defineFrozenValues({
+  _children: function() {
+    return Scene.Chain({
+      isHidden: this.isHidden
+    });
+  }
+});
 
 type.defineProperties({
   button: {
@@ -23,65 +41,58 @@ type.defineProperties({
       assert(button instanceof Tab.Button, "Tab::__loadButtonType must return a type that inherits from Tab.Button!");
       return button;
     }
-  },
-  activeScene: {
-    get: function() {
-      return this._children.last;
-    }
-  },
-  scenes: {
-    get: function() {
-      return this._children.scenes;
-    }
-  },
-  sceneNames: {
-    get: function() {
-      return this.scenes.map(function(scene) {
-        return scene.__name;
-      });
-    }
   }
 });
 
-type.defineValues({
-  bar: null
-});
-
-type.defineFrozenValues({
-  _children: function() {
-    return Scene.Chain();
-  }
-});
-
-type.initInstance(function() {
-  return this._children.push(this);
-});
-
-type.definePrototype({
-  _buttonType: {
-    lazy: function() {
-      return this.__loadButtonType();
-    }
+type.defineGetters({
+  activeScene: function() {
+    return this._children.last;
+  },
+  scenes: function() {
+    return this._children.scenes;
+  },
+  sceneNames: function() {
+    return this.scenes.map(function(scene) {
+      return scene.__name;
+    });
   }
 });
 
 type.defineMethods({
   push: function(scene) {
-    scene.isHidden = this.isHidden;
     this._children.push(scene);
-    this._collection.insert(scene);
   },
   pop: function() {
-    var scene;
-    scene = this.activeScene;
-    if (!scene) {
-      return;
-    }
     this._children.pop();
-    this._collection.remove(scene);
   },
+  _onSelect: function(oldTab) {
+    this.isHidden = false;
+    this._children.isHidden = false;
+    this.__onSelect(oldTab);
+    this.button.__onSelect(oldTab);
+  },
+  _onUnselect: function(newTab) {
+    this.isHidden = true;
+    this._children.isHidden = true;
+    this.__onUnselect(newTab);
+    this.button.__onUnselect(newTab);
+  }
+});
+
+type.defineHooks({
+  __onSelect: emptyFunction,
+  __onUnselect: emptyFunction,
   __loadButtonType: function() {
     return Tab.Button;
+  }
+});
+
+type.overrideMethods({
+  __onInsert: function(collection) {
+    return this._children.collection = collection;
+  },
+  __onRemove: function() {
+    return this._children.collection = null;
   }
 });
 

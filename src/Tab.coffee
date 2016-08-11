@@ -1,13 +1,25 @@
 
-{ Component } = require "component"
+{Type} = require "modx"
 
+emptyFunction = require "emptyFunction"
 assert = require "assert"
 Scene = require "Scene"
 Event = require "Event"
 
-type = Component.Type "Tab"
+type = Type "Tab"
 
 type.inherits Scene
+
+type.defineOptions
+  isHidden: Boolean.withDefault yes
+
+type.defineValues
+
+  bar: null
+
+type.defineFrozenValues
+
+  _children: -> Scene.Chain { @isHidden }
 
 type.defineProperties
 
@@ -17,49 +29,57 @@ type.defineProperties
     assert button instanceof Tab.Button, "Tab::__loadButtonType must return a type that inherits from Tab.Button!"
     return button
 
-  activeScene: get: ->
+type.defineGetters
+
+  activeScene: ->
     @_children.last
 
-  scenes: get: ->
+  scenes: ->
     @_children.scenes
 
-  sceneNames: get: ->
+  sceneNames: ->
     @scenes.map (scene) -> scene.__name
-
-type.defineValues
-
-  bar: null
-
-type.defineFrozenValues
-
-  _children: -> Scene.Chain()
-
-type.initInstance ->
-
-  @_children.push this
-
-type.definePrototype
-
-  _buttonType: lazy: ->
-    @__loadButtonType()
 
 type.defineMethods
 
   push: (scene) ->
-    scene.isHidden = @isHidden
     @_children.push scene
-    @_collection.insert scene
     return
 
   pop: ->
-    scene = @activeScene
-    return if not scene
     @_children.pop()
-    @_collection.remove scene
     return
 
+  _onSelect: (oldTab) ->
+    @isHidden = no
+    @_children.isHidden = no
+    @__onSelect oldTab
+    @button.__onSelect oldTab
+    return
+
+  _onUnselect: (newTab) ->
+    @isHidden = yes
+    @_children.isHidden = yes
+    @__onUnselect newTab
+    @button.__onUnselect newTab
+    return
+
+type.defineHooks
+
+  __onSelect: emptyFunction
+
+  __onUnselect: emptyFunction
+
   __loadButtonType: ->
-    Tab.Button
+    return Tab.Button
+
+type.overrideMethods
+
+  __onInsert: (collection) ->
+    @_children.collection = collection
+
+  __onRemove: ->
+    @_children.collection = null
 
 type.defineStatics
 
