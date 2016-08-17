@@ -59,7 +59,7 @@ type.overrideMethods
 # Rendering
 #
 
-type.propTypes =
+type.defineProps
   children: Children
 
 type.defineStyles
