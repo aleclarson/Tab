@@ -2,7 +2,6 @@
 {Type} = require "modx"
 
 emptyFunction = require "emptyFunction"
-assert = require "assert"
 Scene = require "Scene"
 Event = require "Event"
 
@@ -19,23 +18,23 @@ type.defineValues
 
 type.defineFrozenValues
 
-  _children: -> Scene.Chain { @isHidden }
+  _scenes: -> Scene.Chain {@isHidden}
 
 type.defineProperties
 
   button: lazy: ->
-    Button = @__loadButtonType()
-    button = Button { tab: this }
-    assert button instanceof Tab.Button, "Tab::__loadButtonType must return a type that inherits from Tab.Button!"
+    button = @__loadButtonType() {tab: this}
+    unless button instanceof Tab.Button
+      throw Error "Must return a type that inherits from Tab.Button!"
     return button
 
 type.defineGetters
 
   activeScene: ->
-    @_children.last
+    @_scenes.last
 
   scenes: ->
-    @_children.scenes
+    @_scenes.scenes
 
   sceneNames: ->
     @scenes.map (scene) -> scene.__name
@@ -43,23 +42,23 @@ type.defineGetters
 type.defineMethods
 
   push: (scene) ->
-    @_children.push scene
+    @_scenes.push scene
     return
 
   pop: ->
-    @_children.pop()
+    @_scenes.pop()
     return
 
   _onSelect: (oldTab) ->
     @isHidden = no
-    @_children.isHidden = no
+    @_scenes.isHidden = no
     @__onSelect oldTab
     @button.__onSelect oldTab
     return
 
   _onUnselect: (newTab) ->
     @isHidden = yes
-    @_children.isHidden = yes
+    @_scenes.isHidden = yes
     @__onUnselect newTab
     @button.__onUnselect newTab
     return
@@ -76,10 +75,10 @@ type.defineHooks
 type.overrideMethods
 
   __onInsert: (collection) ->
-    @_children.collection = collection
+    @_scenes.collection = collection
 
   __onRemove: ->
-    @_children.collection = null
+    @_scenes.collection = null
 
 type.defineStatics
 

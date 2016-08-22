@@ -1,10 +1,8 @@
-var Event, Scene, Tab, Type, assert, emptyFunction, type;
+var Event, Scene, Tab, Type, emptyFunction, type;
 
 Type = require("modx").Type;
 
 emptyFunction = require("emptyFunction");
-
-assert = require("assert");
 
 Scene = require("Scene");
 
@@ -23,7 +21,7 @@ type.defineValues({
 });
 
 type.defineFrozenValues({
-  _children: function() {
+  _scenes: function() {
     return Scene.Chain({
       isHidden: this.isHidden
     });
@@ -33,12 +31,13 @@ type.defineFrozenValues({
 type.defineProperties({
   button: {
     lazy: function() {
-      var Button, button;
-      Button = this.__loadButtonType();
-      button = Button({
+      var button;
+      button = this.__loadButtonType()({
         tab: this
       });
-      assert(button instanceof Tab.Button, "Tab::__loadButtonType must return a type that inherits from Tab.Button!");
+      if (!(button instanceof Tab.Button)) {
+        throw Error("Must return a type that inherits from Tab.Button!");
+      }
       return button;
     }
   }
@@ -46,10 +45,10 @@ type.defineProperties({
 
 type.defineGetters({
   activeScene: function() {
-    return this._children.last;
+    return this._scenes.last;
   },
   scenes: function() {
-    return this._children.scenes;
+    return this._scenes.scenes;
   },
   sceneNames: function() {
     return this.scenes.map(function(scene) {
@@ -60,20 +59,20 @@ type.defineGetters({
 
 type.defineMethods({
   push: function(scene) {
-    this._children.push(scene);
+    this._scenes.push(scene);
   },
   pop: function() {
-    this._children.pop();
+    this._scenes.pop();
   },
   _onSelect: function(oldTab) {
     this.isHidden = false;
-    this._children.isHidden = false;
+    this._scenes.isHidden = false;
     this.__onSelect(oldTab);
     this.button.__onSelect(oldTab);
   },
   _onUnselect: function(newTab) {
     this.isHidden = true;
-    this._children.isHidden = true;
+    this._scenes.isHidden = true;
     this.__onUnselect(newTab);
     this.button.__onUnselect(newTab);
   }
@@ -89,10 +88,10 @@ type.defineHooks({
 
 type.overrideMethods({
   __onInsert: function(collection) {
-    return this._children.collection = collection;
+    return this._scenes.collection = collection;
   },
   __onRemove: function() {
-    return this._children.collection = null;
+    return this._scenes.collection = null;
   }
 });
 
