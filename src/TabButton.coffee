@@ -26,7 +26,7 @@ type.defineHooks
 
   __onUnselect: emptyFunction
 
-type.defineListeners ->
+type.defineMountedListeners ->
 
   @didTap =>
     @tab.bar.activeTab = @tab
