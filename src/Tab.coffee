@@ -50,24 +50,26 @@ type.defineMethods
     return
 
   _onSelect: (oldTab) ->
-    @isHidden = no
-    @_scenes.isHidden = no
     @__onSelect oldTab
     @button.__onSelect oldTab
     return
 
   _onUnselect: (newTab) ->
-    @isHidden = yes
-    @_scenes.isHidden = yes
     @__onUnselect newTab
     @button.__onUnselect newTab
     return
 
 type.defineHooks
 
-  __onSelect: emptyFunction
+  __onSelect: ->
+    @isHidden = no
+    @_scenes.isHidden = no
+    return
 
-  __onUnselect: emptyFunction
+  __onUnselect: ->
+    @isHidden = yes
+    @_scenes.isHidden = yes
+    return
 
   __loadButtonType: ->
     return Tab.Button

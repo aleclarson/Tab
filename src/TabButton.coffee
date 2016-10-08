@@ -2,7 +2,6 @@
 {Type} = require "modx"
 
 emptyFunction = require "emptyFunction"
-fromArgs = require "fromArgs"
 Button = require "Button"
 
 Tab = require "./Tab"
@@ -14,13 +13,15 @@ type.inherits Button
 type.defineOptions
   tab: Tab.Kind.isRequired
 
-type.defineValues
+type.defineValues (options) ->
 
-  tab: fromArgs "tab"
+  tab: options.tab
 
 type.defineHooks
 
-  __onTap: emptyFunction
+  __onTap: ->
+    @tab.bar.activeTab = @tab
+    return
 
   __onSelect: emptyFunction
 
@@ -28,8 +29,6 @@ type.defineHooks
 
 type.defineMountedListeners ->
 
-  @didTap =>
-    @tab.bar.activeTab = @tab
-    @__onTap()
+  @didTap => @__onTap()
 
 module.exports = type.build()
