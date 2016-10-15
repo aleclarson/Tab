@@ -3,7 +3,6 @@
 {View} = require "modx/views"
 
 assertType = require "assertType"
-assert = require "assert"
 Scene = require "Scene"
 sync = require "sync"
 
@@ -23,21 +22,29 @@ type.defineProperties
 
   activeTab:
     get: -> @_activeTab
-    set: (newValue, oldValue) ->
-      return if newValue is oldValue
-      assertType newValue, Tab.Kind
-      assert this is newValue.bar, "Tab does not belong to this TabBar!"
-      @_activeTab = newValue
-      oldValue and oldValue._onUnselect newValue
-      newValue._onSelect oldValue
+    set: (activeTab, oldTab) ->
+      return if activeTab is oldTab
+      assertType activeTab, Tab.Kind
+      if activeTab.bar isnt this
+        throw Error "Tab does not belong to this TabBar!"
+
+      @_activeTab = activeTab
+      oldTab and oldTab._onUnselect activeTab
+      activeTab._onSelect oldTab
 
   tabs:
     get: -> @_tabs
     set: (tabs) ->
-      assert not @_tabs.length, "Tabs are already set!"
-      for tab in tabs
+
+      if @_tabs.length
+        throw Error "Tabs are already set!"
+
+      tabs.forEach (tab, index) =>
         assertType tab, Tab.Kind
-        assert (tab.bar is null), "Tab already belongs to another TabBar!"
+        if tab.bar isnt null
+          throw Error "Tab already belongs to another TabBar!"
+
+        tab.index = index
         tab.bar = this
         @_tabs.push tab
       return
@@ -45,7 +52,10 @@ type.defineProperties
 type.overrideMethods
 
   __onInsert: (collection) ->
-    assert @_tabs.length, "Must add tabs before mounting!"
+
+    if not @_tabs.length
+      throw Error "Must add tabs before mounting!"
+
     for tab in @_tabs
       collection.insert tab
     return
@@ -90,7 +100,7 @@ type.defineHooks
       tab.button.render()
 
   __renderBorder: ->
-    return if not @styles.border
+    return no if not @styles.border
     return View
       style: @styles.border()
 

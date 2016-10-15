@@ -4,6 +4,7 @@
 emptyFunction = require "emptyFunction"
 Scene = require "Scene"
 Event = require "Event"
+isDev = require "isDev"
 
 type = Type "Tab"
 
@@ -14,80 +15,43 @@ type.defineOptions
 
 type.defineValues
 
+  index: null
+
   bar: null
-
-type.defineFrozenValues
-
-  _scenes: -> Scene.Chain {@isHidden}
 
 type.defineProperties
 
   button: lazy: ->
-    button = @__loadButtonType() {tab: this}
-    unless button instanceof Tab.Button
+    Button = @__loadButtonType() or Tab.Button
+    button = Button {tab: this}
+    if isDev and not (button instanceof Tab.Button)
       throw Error "Must return a type that inherits from Tab.Button!"
     return button
 
-type.defineGetters
-
-  activeScene: ->
-    @_scenes.last
-
-  scenes: ->
-    @_scenes.scenes
-
-  sceneNames: ->
-    @scenes.map (scene) -> scene.__name
-
 type.defineMethods
 
-  push: (scene) ->
-    @_scenes.push scene
-    return
-
-  pop: ->
-    @_scenes.pop()
-    return
-
   _onSelect: (oldTab) ->
+    @__setHidden no
     @__onSelect oldTab
     @button.__onSelect oldTab
     return
 
   _onUnselect: (newTab) ->
+    @__setHidden yes
     @__onUnselect newTab
     @button.__onUnselect newTab
     return
 
 type.defineHooks
 
-  __onSelect: ->
-    @isHidden = no
-    @_scenes.isHidden = no
+  __setHidden: (isHidden) ->
+    @isHidden = isHidden
     return
 
-  __onUnselect: ->
-    @isHidden = yes
-    @_scenes.isHidden = yes
-    return
+  __onSelect: emptyFunction
 
-  __loadButtonType: ->
-    return Tab.Button
+  __onUnselect: emptyFunction
 
-type.overrideMethods
-
-  __onInsert: (collection) ->
-    @_scenes.collection = collection
-
-  __onRemove: ->
-    @_scenes.collection = null
-
-type.defineStatics
-
-  Bar: lazy: ->
-    require "./TabBar"
-
-  Button: lazy: ->
-    require "./TabButton"
+  __loadButtonType: emptyFunction
 
 module.exports = Tab = type.build()
