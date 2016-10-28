@@ -8,7 +8,7 @@ Tab = require "./Tab"
 
 type = Type "TabButton"
 
-type.inherits Button
+type.inherits Button.Type
 
 type.defineOptions
   tab: Tab.Kind.isRequired
